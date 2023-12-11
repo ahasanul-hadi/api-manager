@@ -14,9 +14,9 @@ public class CustomKeyResolver implements KeyResolver {
     @Override
     public Mono<String> resolve(ServerWebExchange exchange) {
 
-        String keyResolverID= exchange.getRequest().getHeaders().getFirst(GlobalConstants.HEADER_KEY_RESOLVER_ID);
+        String keyResolverID= exchange.getRequest().getHeaders().getFirst(GlobalConstants.HEADER_SUBSCRIPTION_ID);
         log.info("keyResolverID:"+keyResolverID);
-
+        assert keyResolverID != null;
         return Mono.just(keyResolverID);
     }
 }

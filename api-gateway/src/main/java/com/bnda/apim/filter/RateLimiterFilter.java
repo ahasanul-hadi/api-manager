@@ -39,9 +39,7 @@ public class RateLimiterFilter implements GatewayFilter, Ordered {
 
             return keyResolver.resolve(exchange).flatMap(key -> {
                 log.info("subscription Key:"+key);
-                if (StringUtil.isNullOrEmpty(key)) {
-                    //return handleErrorResponse(exchange, HttpStatus.UNPROCESSABLE_ENTITY);
-                }
+                assert route != null;
                 Mono<RateLimiter.Response> result = rateLimiter.isAllowed(route.getId(), key);
                 return result.flatMap(response -> {
 

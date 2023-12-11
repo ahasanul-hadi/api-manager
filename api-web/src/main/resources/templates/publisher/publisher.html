@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="es" xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+
+<head>
+    <meta charset="utf-8" />
+    <link rel="shortcut icon" type="image/x-icon" th:href="@{/static/favicon.ico}" />
+    <title>Publisher </title>
+    <link th:href="@{/assets/img/favicon.png}" rel="icon">
+
+    <!-- Google Fonts -->
+    <link th:href="@{/assets/vendor/datatable/css/fonts.googleapis.com.css}" rel="stylesheet">
+
+    <!-- Vendor CSS Files -->
+    <!-- Template Main CSS File -->
+    <link th:href="@{/assets/css/style.css}" rel="stylesheet">
+
+    <link th:href="@{/assets/vendor/datatable/css/twitter.bootstrap.min.css}" rel="stylesheet">
+    <link th:href="@{/assets/vendor/datatable/css/dataTables.bootstrap5.min.css}" rel="stylesheet">
+</head>
+
+<body class="bg-body-tertiary">
+
+
+<div th:replace="~{fragments/header :: header}"> </div>
+
+<!-- MAIN CONTENT -->
+<main class="container payload">
+    <div class="text-center">
+        <h3>Publishers</h3><br/><br/>
+    </div>
+
+    <div th:insert="~{fragments/flush :: flushMessage}">Action status message</div>
+
+    <div>
+        <span><button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal" data-bs-whatever="@fat">ADD</button> </span>
+    </div>
+
+    <table id="example" class="table table-striped" style="width:100%">
+        <thead>
+        <tr>
+            <th>SL</th>
+            <th>Name</th>
+            <th>Organization</th>
+            <th>APIs</th>
+            <th>Url</th>
+            <th>Delete</th>
+
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="publisher, iterator: ${publishers}">
+            <td th:text="${iterator.index+1}" />
+            <td>
+                <a th:href="@{'/publishers/endpoints/'+${publisher.id}}"><span th:text="${publisher.publisherName}"></span></a>
+            </td>
+            <td th:text="${publisher.organization}" />
+            <td th:text="${publisher.endPoints.size()}" />
+            <td th:text="${publisher.baseUri}" />
+            <td >
+                <a th:href="@{'/publishers/delete/'+${publisher.id}}" class="btn btn-danger delete" role="button">Delete</a>
+            </td>
+
+        </tr>
+        </tbody>
+    </table>
+
+
+    <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="exampleModalLabel">Add New Publisher</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <form th:action="@{/publishers}" method="post" enctype="multipart/form-data" th:object="${dto}">
+                    <div class="modal-body">
+
+                            <div class="mb-3">
+                                <label  class="col-form-label">publisher Name:</label>
+                                <input type="text" class="form-control" th:field="*{publisherName}">
+                            </div>
+                            <div class="mb-3">
+                                <label  class="col-form-label">Organization:</label>
+                                <input type="text" class="form-control" th:field="*{organization}">
+                            </div>
+                            <div class="mb-3">
+                                <label  class="col-form-label">Base Url:</label>
+                                <input type="text" class="form-control" th:field="*{baseUri}">
+                            </div>
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+
+
+</main>
+
+<!-- END MAIN CONTENT -->
+
+
+<!-- BEGIN FOOTER -->
+<div th:replace="~{fragments/footer :: footer}">Footer</div>
+<!-- END FOOTER -->
+
+
+
+<script th:src="@{/assets/vendor/bootstrap/js/bootstrap.bundle.min.js}"></script>
+<script th:src="@{/assets/vendor/glightbox/js/glightbox.min.js}"></script>
+<!-- Template Main JS File -->
+<script th:src="@{/assets/js/main.js}"></script>
+
+<script th:src="@{/assets/vendor/datatable/js/jquery-3.7.0.js}"></script>
+<script th:src="@{/assets/vendor/datatable/js/jquery.dataTables.min.js}"></script>
+<script th:src="@{/assets/vendor/datatable/js/dataTables.bootstrap5.min.js}"></script>
+<script th:src="@{/assets/vendor/datatable/js/bootbox.js}"></script>
+
+<script type="text/javascript">
+    $(document).ready(function() {
+        $('#example').DataTable();
+
+        $(document).on('click', '.accept', function(e) {
+        	 e.preventDefault();
+        	 var href=$(this).attr('href');
+        	 bootbox.confirm("Are you sure?", function(result) {
+                 if (result) {
+                     window.location=href;
+                 }
+             });
+        })
+
+        $(document).on('click', '.delete', function(e) {
+        	 e.preventDefault();
+        	 var href=$(this).attr('href');
+        	 bootbox.confirm("Are you sure you want to delete?", function(result) {
+                 if (result) {
+                     window.location=href;
+                 }
+             });
+        })
+
+    } );
+</script>
+
+</body>
+</html>

@@ -4,8 +4,13 @@
 	<modelVersion>4.0.0</modelVersion>
 	<modules>
 		<module>api-gateway</module>
-		<module>web</module>
+		<module>api-web</module>
 		<module>analytics</module>
+		<module>service-1</module>
+		<module>service-2</module>
+		<module>authorization-server</module>
+		<module>discovery-server</module>
+		<module>demo-gateway</module>
 	</modules>
 	<parent>
 		<groupId>org.springframework.boot</groupId>
@@ -33,6 +38,12 @@
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+		</dependency>
+
 	</dependencies>
 
 	<dependencyManagement>

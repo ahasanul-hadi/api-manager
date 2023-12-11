@@ -19,6 +19,7 @@ import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
 
@@ -35,7 +36,7 @@ public class LogFilter implements GatewayFilter, Ordered {
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         String reqID= exchange.getRequest().getId();
         String uri= exchange.getRequest().getPath().toString();
-        String host= exchange.getRequest().getRemoteAddress().getHostName();
+        String host= Objects.requireNonNull(exchange.getRequest().getRemoteAddress()).getHostName();
         String method= exchange.getRequest().getMethod().name();
 
         String requestBody = exchange.getAttribute(ServerWebExchangeUtils.CACHED_REQUEST_BODY_ATTR);
@@ -65,26 +66,15 @@ public class LogFilter implements GatewayFilter, Ordered {
 
                     try {
                         KafkaData data = KafkaData.builder()
+                                .requestID(reqID)
                                 .apiID(apiID)
                                 .consumerID(consumerID)
-                                .status(exchange.getResponse().getStatusCode().value())
+                                .status(Objects.requireNonNull(exchange.getResponse().getStatusCode()).value())
                                 .timestamp(timestamp)
-                                .payload("")
+                                .payload(requestBody)
                                 .build();
 
-
-                        CompletableFuture<SendResult<String, KafkaData>> future = kafkaTemplate.send(KafkaConstants.KAFKA_TOPIC_NAME, reqID, data);
-                        kafkaTemplate.flush();
-                        future.whenComplete((result, ex) -> {
-                            if (ex == null) {
-
-                                log.error("Sent apiid=[" + data.getApiID() +
-                                        "] with offset=[" + result.getRecordMetadata().offset() + "] partion:"+result.getRecordMetadata().partition());
-                            } else {
-                                log.error("Unable to send apiid=[" +
-                                        data.getApiID() + "] due to : " + ex.getMessage());
-                            }
-                        });
+                        kafkaTemplate.send(KafkaConstants.KAFKA_TOPIC_NAME, reqID, data);
 
                     }catch (Exception e){
                         log.error("error sending kafka:"+e.toString());

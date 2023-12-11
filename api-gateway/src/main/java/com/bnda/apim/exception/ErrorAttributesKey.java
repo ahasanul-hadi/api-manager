@@ -5,8 +5,8 @@ import lombok.Getter;
 @Getter
 public enum ErrorAttributesKey{
     TIME("timestamp"),
-    CODE("code"),
-    MESSAGE("message"),
+    STATUS("status"),
+    ERROR("error"),
     PATH("path");
 
     private final String key;

@@ -11,7 +11,7 @@ public class Consumer {
 
     private String tokenId;
 
-    private String publisherName;
+    private String consumerName;
 
     private boolean isActive;
 

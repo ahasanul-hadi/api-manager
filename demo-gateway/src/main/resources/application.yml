@@ -1,0 +1,118 @@
+my-app-gateway: /api-gateway
+
+server:
+  port: 8000
+
+logging:
+  level:
+    root: INFO
+
+management:
+  endpoint:
+    health:
+      show-details: "ALWAYS"
+      circuitbreakers:
+        enabled: false
+    gateway:
+      enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: gateway,health,metrics
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: ${EUREKA_SERVER_URL:http://discovery:8761/eureka/}
+
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      paymentBK:
+        slidingWindowSize: 10
+        permittedNumberOfCallsInHalfOpenState: 5
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10000
+        registerHealthIndicator: true
+  timelimiter:
+    instances:
+      paymentBK:
+        timeoutDuration: 3s
+
+
+spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://103.48.19.248:8180/realms/api-manager
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      default-filters:
+        - name: RequestRateLimiter
+          args:
+            redis-rate-limiter:
+              replenishRate: 10
+              burstCapacity: 10
+              requestedTokens: 1
+      routes:
+        - id: order
+          uri: lb://order
+          predicates:
+            - Path=${my-app-gateway}/order/**
+          metadata:
+            response-timeout: 2000
+            connect-timeout: 2000
+          filters:
+            - StripPrefix=1
+            - name: CircuitBreaker
+              args:
+                name: mysCircuitBreaker
+                fallbackUri: forward:/fallback
+            - name: Retry
+              args:
+                retries: 2
+                statuses: BAD_GATEWAY, GATEWAY_TIMEOUT, NOT_FOUND
+                methods: GET
+                exceptions:
+                  - org.springframework.cloud.gateway.support.NotFoundException
+                  - org.springframework.cloud.gateway.support.TimeoutException
+                backoff:
+                  firstBackoff: 3000ms
+                  maxBackoff: 3000ms
+                  factor: 10
+                  basedOnPreviousValue: false
+
+
+        - id: payment
+          uri: lb://payment
+          predicates:
+            - Path=${my-app-gateway}/payment/**
+          filters:
+            - StripPrefix=1
+            - name: CircuitBreaker
+              args:
+                name: paymentBK
+                fallbackUri: forward:/fallback2
+
+
+
+
+        - id: oauth2-login
+          uri: http://103.48.19.248:8180
+          predicates:
+            - Path=${my-app-gateway}/oauth2/login
+          filters:
+            - RewritePath=${my-app-gateway}/oauth2/login,/realms/api-manager/protocol/openid-connect/token
+            - AddRequestHeader=Authorization, Basic Y2xpZW50MTpVOGU1NmxpclZOVnNoUjZ5RnVlNjMyWW52bWhINVh6aw==
+
+        - id: oauth2-refresh
+          uri: http://103.48.19.248:8180
+          predicates:
+            - Path=${my-app-gateway}/oauth2/refresh
+          filters:
+            - RewritePath=${my-app-gateway}/oauth2/refresh,/realms/api-manager/protocol/openid-connect/token
+            - AddRequestHeader=Authorization, Basic Y2xpZW50MTpVOGU1NmxpclZOVnNoUjZ5RnVlNjMyWW52bWhINVh6aw==

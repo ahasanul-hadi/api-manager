@@ -12,7 +12,7 @@ public class Subscription {
 
     private ApiEndPoint apiEndPoint;
 
-    private int requestPerMinLimit;
+    private int requestPerSecLimit;
 
     private int quotaLimit;
 

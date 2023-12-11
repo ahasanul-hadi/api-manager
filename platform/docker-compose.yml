@@ -1,0 +1,61 @@
+version: '3.1'
+services:
+  discovery:
+    container_name: discovery
+    build: ../discovery-server/.
+    image: eureka:latest
+    ports:
+      - "8761:8761"
+
+  redis:
+    image: redis:7
+    container_name: redis
+    ports:
+      - 6379:6379
+
+  gateway:
+    container_name: gateway
+    build: ../demo-gateway/.
+    ports:
+      - "8000:8000"
+    depends_on:
+      - discovery
+      - redis
+    environment:
+      - SPRING_DATA_REDIS_HOST=redis
+
+  order-1:
+    container_name: order-1
+    build: ../service-1/.
+    restart: always
+    environment:
+      - SERVER_PORT=9000
+    ports:
+      - "9000:8080"
+    depends_on:
+      - discovery
+
+
+  order-2:
+    build: ../service-1/.
+    container_name: order-2
+    environment:
+      - SERVER_PORT=9001
+    restart: always
+    ports:
+      - "9001:8080"
+    depends_on:
+      - discovery
+      - gateway
+
+  payment:
+    build: ../service-2/.
+    container_name: payment
+    environment:
+      - SERVER_PORT=9003
+    restart: always
+    ports:
+      - "9003:8080"
+    depends_on:
+      - discovery
+      - gateway

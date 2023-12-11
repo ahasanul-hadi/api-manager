@@ -44,12 +44,12 @@ public class CustomRateLimiter implements RateLimiter {
     private int getBurstCapacity(String routeId, String apiKey) {
         long key= Long.parseLong(apiKey);
         Optional<Subscription> subOptional=  dataRepository.getSubscriptionById(key);
-        return subOptional.isPresent()?subOptional.get().getRequestPerMinLimit():1;
+        return subOptional.map(Subscription::getRequestPerSecLimit).orElse(1);
     }
     private int getReplenishRate(String routeId, String apiKey) {
         long key= Long.parseLong(apiKey);
         Optional<Subscription> subOptional=  dataRepository.getSubscriptionById(key);
-        return subOptional.isPresent()?subOptional.get().getRequestPerMinLimit():1;
+        return subOptional.map(Subscription::getRequestPerSecLimit).orElse(1);
     }
 
     public Mono<Response> isAllowed(String routeId, String apiKey) {

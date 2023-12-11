@@ -1,0 +1,67 @@
+version: '3.9'
+
+services:
+
+  mysql-kc:
+    container_name: mysql-keycloak
+    image: mysql:latest
+    ports:
+      - "3366:3306"
+    restart: unless-stopped
+    environment:
+      # The user, password and database that Keycloak
+      # is going to create and use
+      MYSQL_USER: keycloak_user
+      MYSQL_PASSWORD: keycloak_password
+      MYSQL_DATABASE: keycloak_db
+      # Self-Explanatory
+      MYSQL_ROOT_PASSWORD: Password123!
+    volumes:
+      - "./config/my.conf:/etc/mysql/conf.d/config-file.cnf"
+      - "./data:/var/lib/mysql:rw"
+    networks:
+      - keycloak-and-mysql-network
+
+  keycloak:
+    container_name: keycloak
+    image: quay.io/keycloak/keycloak:latest
+    command: start-dev
+    depends_on:
+      - "mysql-kc"
+    environment:
+     
+      KC_DB: mysql
+     
+      KC_DB_URL_HOST: mysql-kc
+      KC_DB_URL_DATABASE: keycloak_db
+      KC_DB_PASSWORD: keycloak_password
+      KC_DB_USERNAME: keycloak_user
+
+    
+      KC_HEALTH_ENABLED: 'true'
+      KC_HTTP_ENABLED: 'true'
+      KC_METRICS_ENABLED: 'true'
+
+      KEYCLOAK_LOGLEVEL: DEBUG
+
+      # KC_HOSTNAME: keycloak.com.au
+      # KC_HOSTNAME_PORT: 8180
+     
+      KC_PROXY: reencrypt
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    ports:
+      - "8180:8080"
+      - "8787:8787" # debug port
+    networks:
+      - keycloak-and-mysql-network
+
+networks:
+  keycloak-and-mysql-network:
+    name: keycloak-mysql
+    ipam:
+      config:
+        - subnet: 194.170.235.0/10
+
+volumes:
+  keycloak-and-mysql-volume:

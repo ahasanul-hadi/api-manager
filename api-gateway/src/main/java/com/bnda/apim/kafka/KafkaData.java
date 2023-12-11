@@ -9,6 +9,7 @@ import lombok.Data;
 @Data
 @Builder
 public class KafkaData {
+    private String requestID;
     private String apiID;
     private String consumerID;
     private int status;

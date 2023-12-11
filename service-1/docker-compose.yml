@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  service-1:
+    image: test:version1
+    restart: always
+    ports:
+      - "9001:8080"
+    environment:
+      - EUREKA_SERVER_URL = http://host.docker.internal:8761/eureka/
+
+  service-2:
+    image: test:version1
+    restart: always
+    ports:
+      - "9002:8080"
+    environment:
+      - EUREKA_SERVER_URL = http://host.docker.internal:8761/eureka/
